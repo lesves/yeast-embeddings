@@ -2,3 +2,5 @@ data/
 venv/
 .ipynb_checkpoints/
 .DS_Store
+.jupyter_ystore.db
+
