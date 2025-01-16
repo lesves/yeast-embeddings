@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 def load_data(file_path, batch_size):
     # Load data
     dnalm_df = pd.read_parquet(file_path)
+    dnalm_df = dnalm_df.set_index('gene_id')
 
     # Normalize data
     scaler = StandardScaler()

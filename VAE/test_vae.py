@@ -7,6 +7,11 @@ from model.loss import vae_loss
 from config import CONFIG
 
 def test_vae(test_loader):
+    # Check for GPU
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+
+
     # Load model
     vae = VAE(
         input_dim=test_loader.dataset.tensors[0].shape[1],
@@ -15,7 +20,7 @@ def test_vae(test_loader):
         activation_function=CONFIG["activation_function"],
         dropout_rate=CONFIG["dropout_rate"],
         batch_norm=CONFIG["batch_norm"],
-    )
+    ).to(device)
 
     # Load trained weights
     vae.load_state_dict(torch.load("vae_model.pth", weights_only=True))
@@ -24,7 +29,7 @@ def test_vae(test_loader):
     test_loss = 0
     with torch.no_grad():
         for batch in test_loader:
-            x = batch[0]
+            x = batch[0].to(device)
             recon, mu, logvar = vae(x)
             test_loss += vae_loss(recon, x, mu, logvar).item()
 
