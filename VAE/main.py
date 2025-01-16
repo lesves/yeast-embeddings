@@ -30,16 +30,26 @@ vae = VAE(
 # Optimizer
 optimizer = optim.Adam(vae.parameters(), lr=CONFIG["learning_rate"])
 
+def weights_init(m):
+    if isinstance(m, torch.nn.Linear):
+        torch.nn.init.xavier_uniform_(m.weight)
+        if m.bias is not None:
+            torch.nn.init.constant_(m.bias, 0)
+
+vae.apply(weights_init)
+
 # Training loop
 vae.train()
 for epoch in range(CONFIG["num_epochs"]):
     epoch_loss = 0
+    beta = min(1, epoch / (CONFIG["num_epochs"] // 2))  # Gradually increase beta
+
     for batch in train_loader:
         x = batch[0].to(device)  # Input data
         optimizer.zero_grad()
 
         recon, mu, logvar = vae(x)
-        loss = vae_loss(recon, x, mu, logvar)
+        loss = vae_loss(recon, x, mu, logvar, beta)
         loss.backward()
         optimizer.step()
 
