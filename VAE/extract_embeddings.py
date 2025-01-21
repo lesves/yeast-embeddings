@@ -75,27 +75,27 @@ def extract_and_save_embeddings(model_path, data_path, output_path, recon_output
     pd.DataFrame(reconstructed_data).to_parquet(recon_output_path, index=False)
     print("Reconstructed embeddings saved successfully!")
 
-    # Diagnose the embeddings
-    print("Diagnosing embeddings...")
+#    # Diagnose the embeddings
+#    print("Diagnosing embeddings...")
 
     # Compute reconstruction error for a few samples
-    sample_indices = np.random.choice(len(data), size=5, replace=False)
-    for idx in sample_indices:
-        original = data[idx]
-        reconstructed = reconstructed_data[idx]
-
-        # Print sample comparison
-        print(f"Sample {idx}:")
-        print("Original (first 5 features):", original[:5])
-        print("Reconstructed (first 5 features):", reconstructed[:5])
-        print("Reconstruction Error (MSE):", np.mean((original - reconstructed) ** 2))
-        print()
-
-    # Analyze latent space
-    print("Analyzing latent space...")
-    print("Latent space mean (first 5 embeddings):")
-    print(embeddings[:5])
-    print("Latent space variance (first 5 dimensions):", np.var(embeddings, axis=0)[:5])
+#    sample_indices = np.random.choice(len(data), size=5, replace=False)
+#    for idx in sample_indices:
+#        original = data[idx]
+#        reconstructed = reconstructed_data[idx]
+#
+#        # Print sample comparison
+#        print(f"Sample {idx}:")
+#        print("Original (first 5 features):", original[:5])
+#        print("Reconstructed (first 5 features):", reconstructed[:5])
+#        print("Reconstruction Error (MSE):", np.mean((original - reconstructed) ** 2))
+#        print()
+#
+#    # Analyze latent space
+#    print("Analyzing latent space...")
+#    print("Latent space mean (first 5 embeddings):")
+#    print(embeddings[:5])
+#    print("Latent space variance (first 5 dimensions):", np.var(embeddings, axis=0)[:5])
 
 if __name__ == "__main__":
     model_path = "vae_model.pth"  # Path to the trained model
