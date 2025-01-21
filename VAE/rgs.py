@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score
 import random
 from model.vae import VAE
 from model.loss import vae_loss
@@ -28,20 +27,20 @@ def train_vae_and_extract_embeddings(params, data_path, model_save_path, embeddi
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Load and split data
-    train_loader, val_loader, test_loader, input_dim = load_data(CONFIG["data_path"], CONFIG["batch_size"])
+    train_loader, val_loader, test_loader, input_dim = load_data(data_path, params["batch_size"])
 
     # Initialize the model
     vae = VAE(
         input_dim=input_dim,
-        latent_dim=CONFIG["latent_dim"],
-        hidden_layers=CONFIG["hidden_layers"],
-        activation_function=CONFIG["activation_function"],
-        dropout_rate=CONFIG["dropout_rate"],
-        batch_norm=CONFIG["batch_norm"],
+        latent_dim=params["latent_dim"],
+        hidden_layers=params["hidden_layers"],
+        activation_function=params["activation_function"],
+        dropout_rate=params["dropout_rate"],
+        batch_norm=params["batch_norm"],
     ).to(device)
 
     # Optimizer
-    optimizer = torch.optim.Adam(vae.parameters(), lr=CONFIG["learning_rate"])
+    optimizer = torch.optim.Adam(vae.parameters(), lr=params["learning_rate"])
 
     def weights_init(m):
         if isinstance(m, torch.nn.Linear):
@@ -53,9 +52,9 @@ def train_vae_and_extract_embeddings(params, data_path, model_save_path, embeddi
 
     # Training loop
     vae.train()
-    for epoch in range(CONFIG["num_epochs"]):
+    for epoch in range(params["num_epochs"]):
         epoch_loss = 0
-        beta = min(1, epoch / (CONFIG["num_epochs"] // 2))  # Gradually increase beta
+        beta = min(1, epoch / (params["num_epochs"] // 2))  # Gradually increase beta
 
         for batch in train_loader:
             x = batch[0].to(device)  # Input data
@@ -67,8 +66,8 @@ def train_vae_and_extract_embeddings(params, data_path, model_save_path, embeddi
             optimizer.step()
 
             epoch_loss += loss.item()
-        # Load and split dath {epoch + 1}/{params['num_epochs']}, Loss: {epoch_loss:.4f}")
-                
+        print(f"Epoch {epoch + 1}/{params['num_epochs']}, Loss: {epoch_loss:.4f}")
+
     # Save the trained model
     torch.save(vae.state_dict(), model_save_path)
 
@@ -78,7 +77,7 @@ def train_vae_and_extract_embeddings(params, data_path, model_save_path, embeddi
     data = pd.read_parquet(data_path)
     data = data.set_index('gene_id').values
 
-    full_loader = DataLoader(TensorDataset(torch.tensor(data, dtype=torch.float32)), batch_size=CONFIG["batch_size"], shuffle=False)
+    full_loader = DataLoader(TensorDataset(torch.tensor(data, dtype=torch.float32)), batch_size=params["batch_size"], shuffle=False)
 
     embeddings = []
     with torch.no_grad():
@@ -115,7 +114,6 @@ def calculate_r2(full_emb_path, vae_emb_path, smf_filter_path):
     lm = LinearRegression().fit(X_train, y_train)
     r2 = lm.score(X_test, y_test)
     return r2
-
 
 def random_grid_search(num_trials, data_path, full_emb_path, smf_filter_path):
     """
@@ -168,7 +166,6 @@ def random_grid_search(num_trials, data_path, full_emb_path, smf_filter_path):
 
     print(f"Best R2 score: {best_r2}")
     print(f"Best parameters: {best_params}")
-
 
 # Run the random grid search
 random_grid_search(
