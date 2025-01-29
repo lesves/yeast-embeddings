@@ -1,3 +1,7 @@
+VAE/vae_model.pth
+__pycache__/
+*.parquet
+*.pth
 data/
 venv/
 .ipynb_checkpoints/
