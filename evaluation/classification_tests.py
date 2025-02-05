@@ -9,17 +9,18 @@ import sklearn.metrics
 
 from sklearn.metrics import PrecisionRecallDisplay
 
-#from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA
 
 
 EMBEDDINGS = [
-    ["../data/seq_feats.csv", "Seq. feats"],
-    ["../data/yeast_emb_only_embeddings.csv", "Base"],
-    ["../data/yeast_emb_embeddings_yeastnet.csv", "Base + YeastNet"],
-    ["../data/yeast_emb_embeddings_genex.csv", "Base + Gene ex."],
-    ["../data/yeast_emb_embeddings_yeastnet_genex.csv", "Base + YeastNet + Gene ex."],
-    ["../data/vae.csv", "VAE"],
-    ["../data/cvae.csv", "CVAE"],
+    ["../data/seq_feats.csv", "Seq. feats", None],
+    ["../data/yeast_emb_only_embeddings.csv", "Base", None],
+    ["../data/yeast_emb_embeddings_yeastnet.csv", "Base + YeastNet", None],
+    ["../data/yeast_emb_embeddings_genex.csv", "Base + Gene ex.", None],
+    ["../data/yeast_emb_embeddings_yeastnet_genex.csv", "Base + YeastNet + Gene ex.", None],
+    ["../data/yeast_emb_embeddings_yeastnet_genex.csv", "Base + YeastNet + Gene ex.\nPCA(256)", PCA(256)],
+    ["../data/vae.csv", "VAE", None],
+    ["../data/cvae.csv", "CVAE", None],
 ]
 CLASSIFIERS = [
     sklearn.linear_model.LogisticRegression(max_iter=1000, n_jobs=8),
@@ -32,11 +33,13 @@ print(f"Non-essential genes {essential_ratio*100:.2f}%")
 
 dataset_names = []
 datasets = []
-for emb_path, emb_name in EMBEDDINGS:
+for emb_path, emb_name, proc in EMBEDDINGS:
     dataset_names.append(emb_name)
     emb = pd.read_csv(emb_path, index_col=0)
     if "gene_id" in emb:
         emb = emb.set_index("gene_id")
+    if proc is not None:
+        emb = pd.DataFrame(proc.fit_transform(emb), index=emb.index)
 
     dataset = emb.merge(classes, left_index=True, right_index=True)
     X = dataset.iloc[:, :-1]
@@ -74,6 +77,7 @@ for j in range(len(CLASSIFIERS)):
     ax[j].legend(bbox_to_anchor=(1, 1), fontsize="x-small")
 
 plt.tight_layout()
+plt.subplots_adjust(wspace=0.5)
 
 plt.savefig("fig.png", bbox_inches="tight")
 plt.savefig("fig.eps", bbox_inches="tight", format="eps")
